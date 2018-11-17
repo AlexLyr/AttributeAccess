@@ -1,0 +1,58 @@
+package com.ursip.dsproxy.listener;
+
+import com.ursip.dsproxy.ConnectionInfo;
+import com.ursip.dsproxy.proxy.ProxyConfig;
+
+import java.lang.reflect.Method;
+
+/**
+ * @author Lyrchikov Alexander
+
+ */
+public class MethodExecutionListenerUtils {
+
+    public interface MethodExecutionCallback {
+        Object execute(Object proxyTarget, Method method, Object[] args) throws Throwable;
+    }
+
+    public static Object invoke(MethodExecutionCallback callback, ProxyConfig proxyConfig,
+                                Object proxyTarget, ConnectionInfo connectionInfo, Method method,
+                                Object[] args) throws Throwable {
+
+        MethodExecutionContext methodContext = MethodExecutionContext.Builder.create()
+                .target(proxyTarget)
+                .method(method)
+                .methodArgs(args)
+                .connectionInfo(connectionInfo)
+                .proxyConfig(proxyConfig)
+                .build();
+
+        MethodExecutionListener methodExecutionListener = proxyConfig.getMethodListener();
+        methodExecutionListener.beforeMethod(methodContext);
+
+        // method and args may be replaced in MethodExecutionListener
+        Method methodToInvoke = methodContext.getMethod();
+        Object[] methodArgsToInvoke = methodContext.getMethodArgs();
+
+        final long beforeTime = System.currentTimeMillis();
+        Object result = null;
+        Throwable thrown = null;
+        try {
+            result = callback.execute(proxyTarget, methodToInvoke, methodArgsToInvoke);
+        } catch (Throwable throwable) {
+            thrown = throwable;
+            throw throwable;
+        } finally {
+            final long afterTime = System.currentTimeMillis();
+            long elapsedTime = afterTime - beforeTime;
+
+            methodContext.setElapsedTime(elapsedTime);
+            methodContext.setResult(result);
+            methodContext.setThrown(thrown);
+
+            methodExecutionListener.afterMethod(methodContext);
+        }
+        return result;
+    }
+
+}
