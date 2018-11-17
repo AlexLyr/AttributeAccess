@@ -45,12 +45,12 @@ public class DatasourceProxyBeanPostProcessor implements BeanPostProcessor {
             this.dataSource = ProxyDataSourceBuilder.create(dataSource)
                     .queryTransformer(new QueryTransformer() {
                         public String transformQuery(TransformInfo transformInfo) {
-                            return null;
+                            return transformInfo.getQuery();
                         }
                     })
                     .parameterTransformer(new ParameterTransformer() {
                         public void transformParameters(ParameterReplacer replacer, TransformInfo transformInfo) {
-
+                            System.out.println(replacer.getModifiedParameters());
                         }
                     })
                     .logQueryBySlf4j(SLF4JLogLevel.INFO).build();
