@@ -45,6 +45,7 @@ public class DatasourceProxyBeanPostProcessor implements BeanPostProcessor {
             this.dataSource = ProxyDataSourceBuilder.create(dataSource)
                     .queryTransformer(new QueryTransformer() {
                         public String transformQuery(TransformInfo transformInfo) {
+
                             return transformInfo.getQuery();
                         }
                     })
@@ -53,6 +54,8 @@ public class DatasourceProxyBeanPostProcessor implements BeanPostProcessor {
                             System.out.println(replacer.getModifiedParameters());
                         }
                     })
+                    .autoRetrieveGeneratedKeys(true)
+                    .retrieveGeneratedKeysForBatch(true,true)
                     .logQueryBySlf4j(SLF4JLogLevel.INFO).build();
         }
 
