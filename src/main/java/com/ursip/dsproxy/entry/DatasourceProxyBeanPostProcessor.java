@@ -2,6 +2,7 @@ package com.ursip.dsproxy.entry;
 
 
 import java.lang.reflect.Method;
+import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
@@ -11,6 +12,7 @@ import com.ursip.dsproxy.transform.ParameterReplacer;
 import com.ursip.dsproxy.transform.ParameterTransformer;
 import com.ursip.dsproxy.transform.QueryTransformer;
 import com.ursip.dsproxy.transform.TransformInfo;
+import com.ursip.dsproxy.ursiplogic.PolicyQueryFilter;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.ProxyFactory;
@@ -45,13 +47,11 @@ public class DatasourceProxyBeanPostProcessor implements BeanPostProcessor {
             this.dataSource = ProxyDataSourceBuilder.create(dataSource)
                     .queryTransformer(new QueryTransformer() {
                         public String transformQuery(TransformInfo transformInfo) {
-
-                            return transformInfo.getQuery();
+                            return new PolicyQueryFilter(transformInfo.getQuery(),dataSource).filterQuery();
                         }
                     })
                     .parameterTransformer(new ParameterTransformer() {
                         public void transformParameters(ParameterReplacer replacer, TransformInfo transformInfo) {
-                            System.out.println(replacer.getModifiedParameters());
                         }
                     })
                     .autoRetrieveGeneratedKeys(true)
