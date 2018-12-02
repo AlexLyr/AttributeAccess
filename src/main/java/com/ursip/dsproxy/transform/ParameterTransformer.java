@@ -1,5 +1,7 @@
 package com.ursip.dsproxy.transform;
 
+import java.sql.Statement;
+
 /**
  * @author Lyrchikov Alexander
 
@@ -8,5 +10,5 @@ public interface ParameterTransformer {
 
     static ParameterTransformer DEFAULT = new NoOpParameterTransformer();
 
-    void transformParameters(ParameterReplacer replacer, TransformInfo transformInfo);
+    Statement transformParametersAndGetStatement(ParameterReplacer replacer, TransformInfo transformInfo,Statement ps);
 }

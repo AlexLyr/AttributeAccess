@@ -214,7 +214,7 @@ public class StatementProxyLogic {
                     if ("addBatch".equals(methodName)) {
 
                         // TODO: check
-                        transformParameters(parameterTransformer, ps, true, batchParameters.size());
+                        ps = (PreparedStatement) transformParametersAndGetStatement(parameterTransformer, ps, true, batchParameters.size());
 
                         // copy values
                         Map<ParameterKey, ParameterSetOperation> newParams = new LinkedHashMap<ParameterKey, ParameterSetOperation>(parameters);
@@ -272,7 +272,7 @@ public class StatementProxyLogic {
                 queryInfo = new QueryInfo(transformedQuery);
             } else {
                 PreparedStatement ps = (PreparedStatement) this.statement;
-                transformParameters(parameterTransformer, ps, false, 0);
+                transformParametersAndGetStatement(parameterTransformer, ps, false, 0);
 
                 queryInfo = new QueryInfo(this.query);
                 queryInfo.getParametersList().add(new ArrayList<ParameterSetOperation>(parameters.values()));
@@ -399,13 +399,14 @@ public class StatementProxyLogic {
     }
 
 
-    private void transformParameters(ParameterTransformer parameterTransformer, PreparedStatement ps, boolean isBatch, int count) throws SQLException, IllegalAccessException, InvocationTargetException {
+    private Statement transformParametersAndGetStatement(ParameterTransformer parameterTransformer, PreparedStatement ps, boolean isBatch, int count) throws SQLException, IllegalAccessException, InvocationTargetException {
 
         // transform parameters
         final ParameterReplacer parameterReplacer = new ParameterReplacer(this.parameters);
         final TransformInfo transformInfo = new TransformInfo(ps.getClass(), this.connectionInfo.getDataSourceName(), query, isBatch, count);
-        parameterTransformer.transformParameters(parameterReplacer, transformInfo);
+        Statement resSt = parameterTransformer.transformParametersAndGetStatement(parameterReplacer, transformInfo,ps);
 
+        //TODO refactor this logic in Policy QueryFilter
         if (parameterReplacer.isModified()) {
 
             ps.clearParameters();  // clear existing parameters
@@ -420,7 +421,9 @@ public class StatementProxyLogic {
 
             // replace
             this.parameters = modifiedParameters;
+
         }
+        return resSt;
     }
 
 }

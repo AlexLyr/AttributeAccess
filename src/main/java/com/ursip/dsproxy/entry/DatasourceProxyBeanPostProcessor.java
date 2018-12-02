@@ -2,7 +2,9 @@ package com.ursip.dsproxy.entry;
 
 
 import java.lang.reflect.Method;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import javax.sql.DataSource;
 
@@ -45,13 +47,15 @@ public class DatasourceProxyBeanPostProcessor implements BeanPostProcessor {
         public ProxyDataSourceInterceptor(final DataSource dataSource) {
             super();
             this.dataSource = ProxyDataSourceBuilder.create(dataSource)
-                    .queryTransformer(new QueryTransformer() {
+                    //TODO mb this is useless in current situation?
+                    /*.queryTransformer(new QueryTransformer() {
                         public String transformQuery(TransformInfo transformInfo) {
                             return new PolicyQueryFilter(transformInfo.getQuery(),dataSource).filterQuery();
                         }
-                    })
+                    })*/
                     .parameterTransformer(new ParameterTransformer() {
-                        public void transformParameters(ParameterReplacer replacer, TransformInfo transformInfo) {
+                        public Statement transformParametersAndGetStatement(ParameterReplacer replacer, TransformInfo transformInfo, Statement ps) {
+                            return new PolicyQueryFilter(replacer,transformInfo,ps,dataSource).createFilteredStatement();
                         }
                     })
                     .autoRetrieveGeneratedKeys(true)

@@ -1,5 +1,7 @@
 package com.ursip.dsproxy.transform;
 
+import java.sql.Statement;
+
 /**
  * No operation implementation of {@link ParameterTransformer}.
  *
@@ -8,7 +10,7 @@ package com.ursip.dsproxy.transform;
  */
 public class NoOpParameterTransformer implements ParameterTransformer {
 
-    public void transformParameters(ParameterReplacer replacer, TransformInfo transformInfo) {
-        // do nothing
+    public Statement transformParametersAndGetStatement(ParameterReplacer replacer, TransformInfo transformInfo, Statement ps) {
+        return ps;
     }
 }
